@@ -1,5 +1,7 @@
+# recommender.py
 import os
 import google.generativeai as genai
+from profiler import factors as factors_module  # <- import your factor.py module
 
 def configure_gemini():
     api_key = os.getenv("GEMINI_API_KEY")
@@ -10,12 +12,12 @@ def configure_gemini():
 def get_recommendations(risk_profile: dict) -> dict:
     """
     Generate 3 short, actionable recommendations based on risk_level and factors.
-    Returns the original factors list from factor.py.
+    Uses the factors returned from factor.py instead of 'rationale'.
     """
     configure_gemini()
     model = genai.GenerativeModel('gemini-2.5-flash')
 
-    # ✅ Use 'factors' directly
+    # ✅ Use the factors list from risk_profile
     factors_list = risk_profile.get("factors", [])
     factors_str = ", ".join(factors_list) if factors_list else "No factors provided"
     risk_level = risk_profile.get("risk_level", "Unknown")
@@ -41,7 +43,7 @@ def get_recommendations(risk_profile: dict) -> dict:
 
     return {
         "risk_level": risk_level,
-        "factors": factors_list,  # ✅ Returns the correct factors
+        "factors": factors_list,  # ✅ now returns the correct factors
         "recommendations": recommendations,
         "status": "ok" if recommendations else "error"
     }

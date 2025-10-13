@@ -98,17 +98,24 @@ def classify_risk_api():
 def generate_recommendations_api():
     try:
         data = request.get_json()
-        # FIXED: Check for 'factors' instead of 'rationale'
+
+        # Make sure 'factors' is present
         if not data or "risk_level" not in data or "factors" not in data:
             return jsonify({
                 "status": "incomplete_profile",
                 "reason": "Missing required fields: risk_level or factors."
             }), 400
-        recs = recommender.get_recommendations(data)
-        return jsonify(recs)
-    except Exception as e:
-        return jsonify({"error": "Internal server error during recommendation generation."}), 500
 
+        # Pass the factors directly
+        recs = recommender.get_recommendations({
+            "risk_level": data["risk_level"],
+            "factors": data["factors"]
+        })
+        return jsonify(recs)
+
+    except Exception as e:
+        print(f"❌ /api/recommendations error: {e}")
+        return jsonify({"error": "Internal server error during recommendation generation."}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False)
