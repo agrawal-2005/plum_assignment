@@ -1,32 +1,43 @@
-def classify_risk(factors: list) -> dict:
-    factor_scores = {
-        'smoking': 30, 'high sugar diet': 25, 'poor diet': 20,
-        'low exercise': 20, 'sedentary lifestyle': 20, 'obesity': 25,
-        'high blood pressure': 25, 'high cholesterol': 20,
-        'diabetes': 30, 'alcohol': 15, 'stress': 15, 'sleep deprivation': 15
+import os
+import google.generativeai as genai
+import json
+
+def configure_gemini():
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY is not set in the environment.")
+    genai.configure(api_key=api_key)
+
+def get_recommendations(risk_profile: dict) -> dict:
+    configure_gemini()
+    model = genai.GenerativeModel('gemini-2.5-flash')
+
+    factors_str = ", ".join(risk_profile.get("rationale", []))
+    risk_level = risk_profile.get("risk_level", "Unknown")
+    num_recs = 3
+    recommendations = []
+
+    for i in range(num_recs):
+        previous_recs = "; ".join(recommendations) if recommendations else "None"
+        prompt = f"""
+        A person has a "{risk_level}" health risk level, with contributing factors: {factors_str}.
+        Generate 1 **short, actionable recommendation** (1 sentence only) in plain text.
+        Make it different from previous recommendations: {previous_recs}.
+        Do NOT write paragraphs. Output only the recommendation text.
+        """
+        try:
+            response = model.generate_content(prompt)
+            rec_text = response.text.strip().replace('```', '').replace('\n', ' ').strip()
+            if rec_text:
+                recommendations.append(rec_text)
+        except Exception as e:
+            print(f"❌ Error generating recommendation {i+1}: {e}")
+            recommendations.append("No recommendation available.")
+
+    # Return clean JSON array
+    return {
+        "risk_level": risk_level,
+        "factors": risk_profile.get("rationale", []),
+        "recommendations": recommendations,  # <-- now a clean array of 3 strings
+        "status": "ok" if recommendations else "error"
     }
-    
-    score = 0
-    rationale = []
-
-    if not factors:
-        return {"risk_level": "Low", "score": 0, "rationale": []}
-
-    for item in factors:
-        factor_name = item.get("factor", "").lower().strip()
-        confidence = item.get("confidence", 0.0)
-        for key, value in factor_scores.items():
-            if key in factor_name:
-                score += value * confidence
-                rationale.append(item.get("factor"))
-                break
-    score = min(int(round(score)), 100)
-
-    if score > 65:
-        level = "High"
-    elif score > 35:
-        level = "Medium"
-    else:
-        level = "Low"
-        
-    return {"risk_level": level, "score": score, "rationale": list(set(rationale))}

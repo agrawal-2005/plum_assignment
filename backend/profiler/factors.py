@@ -49,27 +49,13 @@ def extract_factors(text_data: str) -> dict:
     configure_gemini()
     model = genai.GenerativeModel('gemini-2.5-flash')
 
-    prompt = f"""
-    Based on the following health data, identify potential risk factors.
-    The output MUST be a valid JSON object:
-    {{
-      "factors": [
-        {{
-          "factor": "example",
-          "confidence": 0.87
-        }}
-      ]
-    }}
-    Health Data:
-    \"\"\"{text_data}\"\"\"
-    """
+    prompt = f"""Based on the following health data, identify potential risk factors."""
 
     try:
         response = safe_generate_content(model, prompt)
         response_text = getattr(response, "text", str(response))
         
         try:
-            # Attempt to clean and parse JSON
             json_response = clean_json_response(response_text)
             result = json.loads(json_response)
             if "factors" not in result:

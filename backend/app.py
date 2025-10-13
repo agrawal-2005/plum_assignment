@@ -1,10 +1,6 @@
 import os
 os.environ["GRPC_VERBOSITY"] = "ERROR"
 os.environ["GRPC_TRACE"] = ""
-
-import logging
-logging.getLogger("google.auth.transport.requests").setLevel(logging.ERROR)
-
 from flask import Flask, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 from profiler import parser, factors, risk_classifier, recommender
@@ -12,9 +8,6 @@ from profiler.factors import configure_gemini
 from dotenv import load_dotenv
 
 load_dotenv()
-
-log = logging.getLogger('google.auth.transport.requests')
-log.setLevel(logging.ERROR)
 
 configure_gemini()
 
@@ -54,14 +47,14 @@ def analyze_health_data():
 
         risk_profile = risk_classifier.classify_risk(factors_list)
         recs = recommender.get_recommendations(risk_profile)
-        recs = recs if isinstance(recs,list) else [str(recs)] if recs else []
+        # recs = recs if isinstance(recs, list) else [str(recs)] if recs else []
 
         return jsonify({
             "extracted_text": combined_text,
             "factors": factors_list,
             "risk_level": risk_profile.get("risk_level", "Unknown"),
             "score": risk_profile.get("score", 0),
-            "recommendations": recs
+            "recommendations": recs["recommendations"]
         })
 
     except Exception as e:
