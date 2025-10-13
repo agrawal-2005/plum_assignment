@@ -8,10 +8,16 @@ def configure_gemini():
     genai.configure(api_key=api_key)
 
 def get_recommendations(risk_profile: dict) -> dict:
+    """
+    Generate 3 short, actionable recommendations based on risk_level and factors.
+    Returns the original factors list from factor.py.
+    """
     configure_gemini()
     model = genai.GenerativeModel('gemini-2.5-flash')
 
-    factors_str = ", ".join(risk_profile.get("rationale", []))
+    # ✅ Use 'factors' directly
+    factors_list = risk_profile.get("factors", [])
+    factors_str = ", ".join(factors_list) if factors_list else "No factors provided"
     risk_level = risk_profile.get("risk_level", "Unknown")
     num_recs = 3
     recommendations = []
@@ -26,17 +32,16 @@ def get_recommendations(risk_profile: dict) -> dict:
         """
         try:
             response = model.generate_content(prompt)
-            rec_text = response.text.strip().replace('```', '').replace('\n', ' ').strip()
+            rec_text = getattr(response, "text", "").strip().replace('```', '').replace('\n', ' ').strip()
             if rec_text:
                 recommendations.append(rec_text)
         except Exception as e:
             print(f"❌ Error generating recommendation {i+1}: {e}")
             recommendations.append("No recommendation available.")
 
-    # ✅ Return clean JSON array
     return {
         "risk_level": risk_level,
-        "factors": risk_profile.get("rationale", []),
-        "recommendations": recommendations,  # <-- each recommendation is a separate element
+        "factors": factors_list,  # ✅ Returns the correct factors
+        "recommendations": recommendations,
         "status": "ok" if recommendations else "error"
     }

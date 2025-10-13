@@ -22,7 +22,7 @@ def safe_generate_content(model, prompt, retries=3, timeout=60):
                 print(f"✅ Gemini API call successful on attempt {attempt+1}.")
                 return response
         except concurrent.futures.TimeoutError:
-            print(f"⚠️ Attempt {attempt+1}/{retries} timed out after {timeout}s.")
+            print(f"Attempt {attempt+1}/{retries} timed out after {timeout}s.")
         except Exception as e:
             print(f"❌ Attempt {attempt+1}/{retries} failed: {e}")
         time.sleep(2)
@@ -30,42 +30,61 @@ def safe_generate_content(model, prompt, retries=3, timeout=60):
 
 def clean_json_response(text: str) -> str:
     text = text.strip()
-    start_brace = text.find('{')
-    start_bracket = text.find('[')
-    if start_brace == -1 and start_bracket == -1:
-        raise ValueError("No JSON object or array found in the response.")
-    if start_brace != -1 and (start_bracket == -1 or start_brace < start_bracket):
-        start_index = start_brace
-        end_char = '}'
-    else:
-        start_index = start_bracket
-        end_char = ']'
-    end_index = text.rfind(end_char)
-    if end_index == -1:
-        raise ValueError("Malformed JSON string in response.")
-    return text[start_index : end_index + 1]
+    start = text.find('{')
+    if start == -1:
+        return None
+    end = text.rfind('}')
+    if end == -1:
+        return None
+    
+    return text[start : end + 1]
 
 def extract_factors(text_data: str) -> dict:
     configure_gemini()
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash-preview-05-20')
 
-    prompt = f"""Based on the following health data, identify potential risk factors."""
+    prompt = f"""
+    Analyze the following health data and identify potential risk factors.
+    Your final output MUST be a single, valid JSON object with a key "factors" which is a list of these factor objects.
+    
+    Example output format:
+    {{
+      "factors": [
+        {{
+          "Smoking", "High Sugar Intake", "Lack of Exercise"
+        }}
+      ]
+    }}
+
+    Health Data to Analyze:
+    ---
+    {text_data}
+    ---x
+    """
 
     try:
         response = safe_generate_content(model, prompt)
-        response_text = getattr(response, "text", str(response))
+        response_text = getattr(response, "text", "") 
         
-        try:
-            json_response = clean_json_response(response_text)
-            result = json.loads(json_response)
-            if "factors" not in result:
-                result["factors"] = []
-        except Exception as parse_error:
-            print(f"❌ Factor extraction parsing failed: {parse_error}")
-            result = {"factors": []}
-
-        return result
+        # print(f"\n💡 RAW GEMINI RESPONSE:\n---\n{response_text}\n---\n")
+        
+        json_string = clean_json_response(response_text)
+        
+        if json_string:
+            try:
+                result = json.loads(json_string)
+                if "factors" not in result:
+                    result["factors"] = []
+                print(f"✅ Factors parsed successfully: {result}")
+                return result
+            except json.JSONDecodeError as e:
+                print(f"❌ Factor extraction JSON decoding failed: {e}")
+                return {"factors": []}
+        else:
+            print("❌ No valid JSON object found in the Gemini response.")
+            return {"factors": []}
 
     except Exception as e:
-        print(f"❌ Error in Gemini API call for factor extraction: {e}")
+        print(f"❌ CRITICAL error in factor extraction logic: {e}")
         return {"factors": []}
+
