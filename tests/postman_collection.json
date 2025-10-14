@@ -1,0 +1,310 @@
+{
+	"info": {
+		"_postman_id": "d4c3a061-dc99-4f2a-88c7-5b94c2221322",
+		"name": "New Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37613412",
+		"_collection_link": "https://bold-eclipse-835213.postman.co/workspace/PlumHQ~b18293ee-e1d3-4f93-bf99-b11551c9987b/collection/37613412-d4c3a061-dc99-4f2a-88c7-5b94c2221322?action=share&source=collection_link&creator=37613412"
+	},
+	"item": [
+		{
+			"name": "Parse",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const responseData = pm.response.json();",
+							"const answers = responseData.answers;",
+							"pm.environment.set(\"answers_for_factors\", JSON.stringify(answers));",
+							"console.log(\"Saved answers for next step:\", pm.environment.get(\"answers_for_factors\"));",
+							"",
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.eql(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response schema is valid\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.have.all.keys('answers', 'confidence', 'missing_fields');",
+							"",
+							"    pm.expect(responseData.answers).to.be.an('object').that.has.all.keys('age', 'diet', 'exercise', 'smoker');",
+							"    pm.expect(responseData.answers.age).to.be.a('number');",
+							"    pm.expect(responseData.answers.diet).to.be.a('string');",
+							"    pm.expect(responseData.answers.exercise).to.be.a('string');",
+							"    pm.expect(responseData.answers.smoker).to.be.a('boolean');",
+							"",
+							"    pm.expect(responseData.confidence).to.be.a('number');",
+							"    pm.expect(responseData.missing_fields).to.be.an('array');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Answers object contains required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.answers).to.exist.and.to.be.an('object');",
+							"    pm.expect(responseData.answers).to.have.all.keys('age', 'diet', 'exercise', 'smoker');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Age is a non-negative integer and smoker is a boolean\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.answers.age).to.be.a('number').and.to.be.at.least(0);",
+							"    pm.expect(responseData.answers.smoker).to.be.a('boolean');",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "textInput",
+							"value": "{\"age\": 42, \"smoker\": true, \"exercise\": \"rarely\", \"diet\": \"high sugar\"}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/parse",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"parse"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Factor",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the JSON response from the server",
+							"const responseData = pm.response.json();",
+							"",
+							"// Save the 'factors' array into the 'factors_list' variable",
+							"const factors = responseData.factors || [];",
+							"pm.environment.set(\"factors_list\", JSON.stringify(factors));",
+							"",
+							"// Add tests to validate the response",
+							"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+							"pm.test(\"Response contains a factors array\", () => {",
+							"    pm.expect(responseData.factors).to.be.an('array');",
+							"});",
+							"",
+							"// Log to the console to confirm the variable was saved",
+							"console.log(\"Saved factors_list for /api/risk:\", pm.environment.get(\"factors_list\"));"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"answers\": {{answers_for_factors}}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/factors",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"factors"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Risk",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the JSON response from the server",
+							"const responseData = pm.response.json();",
+							"",
+							"// Save all the data needed for the final recommendation step",
+							"pm.environment.set(\"risk_level\", responseData.risk_level);",
+							"pm.environment.set(\"risk_score\", responseData.score);",
+							"",
+							"// CRITICAL FIX: Save the simplified 'factors' list from THIS response",
+							"// into a NEW variable called 'risk_factors'",
+							"pm.environment.set(\"risk_factors\", JSON.stringify(responseData.factors));",
+							"",
+							"// Log to verify",
+							"console.log(\"Saved risk_factors for /api/recommendations:\", pm.environment.get(\"risk_factors\"));"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"factors\": {{factors_list}}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/risk",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"risk"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Recommendations",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the final JSON response",
+							"const responseData = pm.response.json();",
+							"",
+							"// --- Validation Tests for the Final Output ---",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test(\"Final response has the correct structure and keys\", function () {",
+							"    pm.expect(responseData).to.have.all.keys(",
+							"        'risk_level',",
+							"        'score',",
+							"        'factors',",
+							"        'recommendations',",
+							"        'status'",
+							"    );",
+							"});",
+							"",
+							"pm.test(\"Status is 'ok'\", function () {",
+							"    pm.expect(responseData.status).to.eql(\"ok\");",
+							"});",
+							"",
+							"pm.test(\"Recommendations array is not empty and contains strings\", function () {",
+							"    pm.expect(responseData.recommendations).to.be.an('array').and.not.be.empty;",
+							"    // Check that the first recommendation is a string",
+							"    if (responseData.recommendations.length > 0) {",
+							"        pm.expect(responseData.recommendations[0]).to.be.a('string');",
+							"    }",
+							"});",
+							"",
+							"// Log the final output to the console",
+							"console.log(\"Final Recommendations Received:\", JSON.stringify(responseData, null, 2));",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"risk_level\": \"{{risk_level}}\",\n    \"score\": {{risk_score}},\n    \"factors\": {{factors_list}}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/recommendations",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"recommendations"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

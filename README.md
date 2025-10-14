@@ -1,281 +1,231 @@
-# 🧠 Health Profiler — AI-Powered Health Risk Analysis using Gemini
+# 🧠 Health Risk Assessment API
 
-## 📘 Problem Statement
-
-In modern healthcare, individuals often lack personalized insights into their health risks unless they undergo professional consultations or diagnostic tests.
-However, with advancements in **AI and large language models**, it’s now possible to analyze user responses or medical data to identify potential **risk factors** and generate **personalized recommendations** — even from natural language or image-based inputs.
-
-The **Health Profiler** project addresses this by building an **end-to-end AI-driven system** that:
-
-* Extracts potential health risk factors from user input (text or image),
-* Classifies the user's overall health risk level,
-* Generates short, actionable recommendations using Gemini.
+An intelligent **Flask-based backend** that analyzes user health inputs, extracts key risk factors, determines overall risk level, and generates **personalized health recommendations** using **Google Gemini AI**.
 
 ---
 
-## 🚀 Project Overview
+## 📜 Problem Statement
 
-The **Health Profiler** uses **Google Gemini 2.5 Flash**, **Flask**, and **Python** to create an intelligent, interactive backend that performs:
+Health-related data collected from individuals (like lifestyle habits, diet, and activity levels) is often unstructured and difficult to interpret.
+This project aims to simplify that by providing a pipeline that can:
 
-| Step | Module               | Description                                                                                           |
-| ---- | -------------------- | ----------------------------------------------------------------------------------------------------- |
-| 1️⃣  | `parser.py`          | Extracts health-related text from uploaded images (using Gemini Vision).                              |
-| 2️⃣  | `factors.py`         | Extracts possible risk factors (like “smoking”, “poor diet”, etc.) from text or parsed image content. |
-| 3️⃣  | `risk_classifier.py` | Assigns a risk score and risk level (`low`, `medium`, or `high`) based on extracted factors.          |
-| 4️⃣  | `recommender.py`     | Uses prompt engineering to generate diverse, actionable health recommendations per risk profile.      |
-| 5️⃣  | `app.py`             | Flask backend that orchestrates all steps and exposes REST APIs for frontend or testing.              |
+* Parse user health data (text or image)
+* Extract risk-related factors using AI
+* Classify the health risk level (Low, Medium, or High)
+* Generate short, actionable health recommendations
+
+All these functionalities are implemented as **modular Flask APIs** integrated with **Google Gemini AI**.
 
 ---
 
-## 🧩 System Architecture
+## 🚀 Features
 
-```
-                ┌─────────────────────────────┐
-                │        User Interface        │
-                │  (Frontend or API Client)    │
-                └──────────────┬───────────────┘
-                               │
-                               ▼
-                    ┌───────────────────┐
-                    │      app.py       │
-                    │ Flask Orchestration│
-                    └─────────┬─────────┘
-                              │
- ┌─────────────────────────────────────────────────────────────────────────┐
- │                                                                         │
- │   Step 1: parser.py   → Extracts text from image inputs (Gemini Vision) │
- │   Step 2: factors.py  → Finds risk factors via Gemini LLM               │
- │   Step 3: risk_classifier.py → Classifies user risk (rule-based)        │
- │   Step 4: recommender.py → Generates unique recommendations             │
- │                                                                         │
- └─────────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-                    ┌───────────────────┐
-                    │ JSON API Response │
-                    └───────────────────┘
+✅ Parse user input (text or image)
+✅ Extract risk factors using Gemini AI
+✅ Classify user’s health risk level
+✅ Generate AI-driven health recommendations
+✅ Modular and easy to extend for medical or lifestyle data
+
+---
+
+## 🧩 Architecture Overview
+
+```mermaid
+flowchart TD
+    A[User Input (Text/Image)] --> B[/api/parse]
+    B --> C[/api/factors]
+    C --> D[/api/risk]
+    D --> E[/api/recommendations]
+    E --> F[Final JSON Response]
 ```
 
+### 🔍 Module Overview
+
+| Module               | Description                                             |
+| -------------------- | ------------------------------------------------------- |
+| `parser.py`          | Extracts text from images using Gemini Vision           |
+| `factors.py`         | Extracts key health-related factors from text           |
+| `risk_classifier.py` | Classifies health risk level based on extracted factors |
+| `recommender.py`     | Generates AI-driven health recommendations              |
+| `app.py`             | Flask app integrating all modules into RESTful APIs     |
+
 ---
 
-## ⚙️ Installation & Setup
+## ⚙️ Setup Instructions
 
-### 1. Clone the Repository
+### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/health-profiler.git
-cd health-profiler/backend
+https://github.com/agrawal-2005/plum_assignment.git
+cd plum_assignment/backend
 ```
 
-### 2. Create a Virtual Environment
+### 2️⃣ Create and Activate Virtual Environment
 
 ```bash
 python -m venv venv
-source venv/bin/activate   # For Mac/Linux
-venv\Scripts\activate      # For Windows
+source venv/bin/activate        # macOS/Linux
+venv\Scripts\activate           # Windows
 ```
 
-### 3. Install Dependencies
+### 3️⃣ Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Set up Environment Variables
+### 4️⃣ Configure Environment Variables
 
-Create a `.env` file in the backend directory:
+Rename `.env.example` → `.env` and add your **Gemini API key**:
 
-```bash
-GEMINI_API_KEY=your_gemini_api_key_here
+```
+GEMINI_API_KEY=your_google_gemini_api_key
 ```
 
-### 5. Run the Flask App
+### Example `.env.example`
+
+```
+# Google Gemini API configuration
+GEMINI_API_KEY=your_api_key_here
+
+# Flask configuration
+FLASK_ENV=development
+```
+
+### 5️⃣ Run the Flask Server
 
 ```bash
 python app.py
 ```
 
-It runs at:
-👉 **[http://127.0.0.1:5000](http://127.0.0.1:5000)**
-
----
-
-## 🧠 API Endpoints
-
-### **1️⃣ /api/parse**
-
-**Description:** Accepts text and/or image input → Extracts risk factors → Classifies risk → Generates recommendations.
-
-**Method:** `POST`
-**Body (form-data):**
+Server will start at:
 
 ```
-textInput: "I smoke occasionally and eat fast food."
-imageInput: <optional .jpg/.png image>
+http://127.0.0.1:5000
 ```
 
-**Response:**
+### 6️⃣ (Optional) Expose Locally via ngrok
 
-```json
-{
-  "extracted_text": "I smoke occasionally and eat fast food.",
-  "factors": ["smoking", "poor diet"],
-  "risk_level": "high",
-  "score": 78,
-  "recommendations": [
-    "Reduce smoking frequency and seek medical help.",
-    "Add fresh fruits and vegetables to your daily meals.",
-    "Schedule regular exercise sessions at least 3 times per week."
-  ]
-}
+```bash
+ngrok http 5000
 ```
 
----
-
-### **2️⃣ /api/factors**
-
-**Description:** Extracts risk factors from structured user answers (Step 2).
-
-**Method:** `POST`
-**JSON Input:**
-
-```json
-{
-  "answers": {
-    "diet": "I eat a lot of junk food.",
-    "exercise": "I rarely work out.",
-    "habits": "I smoke occasionally."
-  }
-}
-```
-
-**Response:**
-
-```json
-{
-  "factors": ["smoking", "poor diet", "low exercise"],
-  "confidence": 0.88
-}
-```
-
----
-
-### **3️⃣ /api/risk**
-
-**Description:** Classifies risk level from extracted factors.
-
-**Method:** `POST`
-**Input:**
-
-```json
-{
-  "factors": ["smoking", "poor diet", "low exercise"]
-}
-```
-
-**Response:**
-
-```json
-{
-  "risk_level": "high",
-  "score": 78,
-  "rationale": ["smoking", "poor diet", "low exercise"]
-}
-```
-
----
-
-### **4️⃣ /api/recommendations**
-
-**Description:** Generates multiple diverse recommendations using prompt engineering.
-
-**Method:** `POST`
-**Input:**
-
-```json
-{
-  "risk_level": "high",
-  "rationale": ["smoking", "poor diet", "low activity"]
-}
-```
-
-**Response:**
-
-```json
-{
-  "risk_level": "high",
-  "factors": ["smoking", "poor diet", "low activity"],
-  "recommendations": [
-    "Reduce smoking gradually over two weeks.",
-    "Add fresh vegetables and fiber to your meals.",
-    "Start a daily 15-minute walk routine."
-  ],
-  "status": "ok"
-}
-```
+Use the generated public link to test your APIs in Postman or your demo video.
 
 ---
 
 ## 🧰 Folder Structure
 
 ```
-health-profiler/
+health-risk-assessment-api/
 │
-├── backend/
-│   ├── app.py                 # Flask main file (API orchestration)
-│   ├── profiler/
-│   │   ├── parser.py          # Image-to-text using Gemini Vision
-│   │   ├── factors.py         # Factor extraction via Gemini LLM
-│   │   ├── risk_classifier.py # Rule-based health risk scoring
-│   │   ├── recommender.py     # Prompt-engineered recommendations
-│   │   └── __init__.py
-│   ├── uploads/               # Stores uploaded user images
-│   ├── .env                   # Gemini API key
-│   └── requirements.txt
+├── profiler/
+│   ├── __init__.py
+│   ├── parser.py
+│   ├── factors.py
+│   ├── risk_classifier.py
+│   ├── recommender.py
 │
-└── frontend/
-    ├── index.html
-    ├── static/
-    ├── scripts/
-    └── styles/
+├── uploads/                 # Uploaded images
+├── app.py                   # Flask main entry point
+├── requirements.txt
+├── .env.example
+├── README.md
+└── tests/
+    └── postman_collection.json
 ```
 
 ---
 
-## 🧪 Example Workflow
+## 🌐 API Endpoints
 
-1️⃣ User submits health text or uploads image →
-2️⃣ Backend extracts possible **risk factors** using Gemini →
-3️⃣ Risk score is calculated (rule-based classifier) →
-4️⃣ **Unique recommendations** are generated (Gemini prompt engineering) →
-5️⃣ Results returned as JSON to frontend.
-
----
-
-## 💡 Features
-
-✅ Accepts **both text and image inputs**
-✅ Uses **Gemini 2.5 Flash API** for fast, multimodal processing
-✅ Follows a modular **4-step pipeline** (Extract → Classify → Recommend)
-✅ Generates **unique recommendations per loop** using prompt engineering
-✅ Provides **REST APIs** for easy frontend or mobile integration
+| Endpoint               | Method | Description                                                           |
+| ---------------------- | ------ | --------------------------------------------------------------------- |
+| `/api/parse`           | `POST` | Parses user input (text or image) and extracts structured health data |
+| `/api/factors`         | `POST` | Extracts key health-related risk factors                              |
+| `/api/risk`            | `POST` | Classifies health risk level as *Low*, *Medium*, or *High*            |
+| `/api/recommendations` | `POST` | Generates AI-based health recommendations                             |
 
 ---
 
-## 🧠 Future Improvements
+## 🧪 Sample API Usage
 
-* Integrate **user profile history** for trend analysis
-* Add **nutrition & fitness tracking APIs**
-* Deploy using **Docker + Gunicorn + GCP Cloud Run**
-* Implement **database logging (PostgreSQL)** for analytics
+### 🧠 1. Parse Image or Text
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/parse \
+```
+
+### ⚙️ 2. Extract Risk Factors
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/factors \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Patient smokes occasionally and consumes high-sugar foods."}'
+```
 
 ---
 
-## 👨‍💻 Author
+### 🔥 3. Classify Risk
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/risk \
+  -H "Content-Type: application/json" \
+  -d '{"factors": ["smoking", "high sugar diet", "low activity"]}'
+```
+
+---
+
+### 💡 4. Generate Recommendations
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/recommendations \
+  -H "Content-Type: application/json" \
+  -d '{"risk_profile": {"risk_level": "high", "factors": ["smoking", "low activity"]}}'
+```
+
+---
+
+## 🧾 Postman Collection
+
+You can import the file:
+
+```
+tests/postman_collection.json
+```
+
+This collection contains all four endpoints pre-configured and ready to run in sequence.
+
+---
+
+## 🎥 Demo Video
+
+🎬 **Demo:** [[https://drive.google.com/file/d/1E5Y70hMg2R-muBn_z9HOuCZ2Yyl4rzq-/view?usp=sharing](https://drive.google.com/file/d/1E5Y70hMg2R-muBn_z9HOuCZ2Yyl4rzq-/view?usp=sharing)]
+*(Shows all APIs working end-to-end on a local Flask server via ngrok)*
+
+---
+
+## 🧱 Tech Stack
+
+* **Flask** – Lightweight Python web framework
+* **Google Gemini AI** – For text and image-based health analysis
+* **Python-dotenv** – For secure environment management
+* **Pillow (PIL)** – For image processing
+* **Requests / JSON** – For API data handling
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License** © 2025 **Prashant Agrawal**.
+
+---
+
+## 📬 Contact
 
 **Prashant Agrawal**
-B.Tech (ECE) @ IIIT Allahabad
+📧 [agrawalprashant906@gmail.com](mailto:agrawalprashant906@gmail.com)
+🔗 [GitHub](https://github.com/agrawal-2005)
+🔗 [LinkedIn](https://www.linkedin.com/in/pr-shant26/)
 
-* 🔗 [GitHub](https://github.com/agrawal-2005)
-* 🔗 [LinkedIn](https://www.linkedin.com/in/pr-shant26/)
-* 📧 [agrawalprashant906@gmail.com](mailto:agrawalprashant906@gmail.com)
+---
