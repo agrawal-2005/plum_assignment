@@ -29,13 +29,12 @@ All these functionalities are implemented as **modular Flask APIs** integrated w
 ---
 
 ## 🧩 Architecture Overview
-
-```mermaid
+```markdown
 flowchart TD
-    A[User Input (Text/Image)] --> B[/api/parse]
-    B --> C[/api/factors]
-    C --> D[/api/risk]
-    D --> E[/api/recommendations]
+    A[User Input (Text or Image)] --> B["/api/parse"]
+    B --> C["/api/factors"]
+    C --> D["/api/risk"]
+    D --> E["/api/recommendations"]
     E --> F[Final JSON Response]
 ```
 
